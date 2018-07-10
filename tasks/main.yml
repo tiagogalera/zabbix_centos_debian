@@ -1,0 +1,72 @@
+---
+- name: Configurar e instalar agente zabbix
+  hosts: all
+  handlers:
+  - include: "../handlers/main.yml"
+  tasks:
+
+  - name: Adiciona variaveis
+    include_vars: "../vars/main.yml"
+
+  - name: Instalar repositorio CentOS
+    get_url:
+      url: http://repo.zabbix.com/zabbix/3.0/rhel/7/x86_64/zabbix-release-3.0-1.el7.noarch.rpm
+      dest: /tmp/zabbix-release-3.0-1.el7.noarch.rpm
+      mode: 0777
+
+  - name: Instalar repositorio Debian
+    get_url:
+      url: http://repo.zabbix.com/zabbix/3.0/debian/pool/main/z/zabbix-release/zabbix-release_3.0-1+jessie_all.deb
+      dest: /tmp/zabbix-release_3.0-1+jessie_all.deb
+      mode: 0777
+
+  - name: Executando zabbix.rpm
+    yum: name=/tmp/zabbix-release-3.0-1.el7.noarch.rpm state=present
+    when: ansible_distribution == "CentOS"
+    become: yes
+
+  - name: Executando zabbix.deb
+    apt: deb=/tmp/zabbix-release_3.0-1+jessie_all.deb
+    when: ansible_distribution == "Debian"
+    become: yes
+
+  - name: Instalar agente zabbix CentOS
+    yum: name=zabbix-agent state=latest
+    when: ansible_distribution == "CentOS"
+    become: yes
+
+  - name: Instalar agente zabbix
+    apt: name=zabbix-agent state=latest
+    when: ansible_os_family == "Debian"
+    become: yes
+
+  - name: Preparar arquivo de configuração
+    template: src=../templates/zabbix_agentd.conf.j2 dest=/etc/zabbix/zabbix_agentd.conf owner=root group=root mode=0644
+    become: yes
+    notify:
+     - Iniciar agente zabbix
+
+  - name: Instalar MySQLdb CentOS
+    yum: name=MySQL-python state=latest
+    when: ansible_distribution == "CentOS"
+    become: yes
+
+  - name: Instalar MySQLdb Debian
+    apt: name=python-mysqldb state=latest
+    when: ansible_os_family == "Debian"
+    become: yes
+
+  - name: Instalar MariaDB
+    yum: name=mariadb-server state=latest
+    when: ansible_distribution == "CentOS"
+    become: yes
+    notify:
+     - Iniciar mariadb CentOS
+
+
+  - name: Instalar MySQL
+    apt: name=mysql-server state=latest
+    when: ansible_os_family == "Debian"
+    become: yes
+    notify:
+     - Iniciar mysql Debian

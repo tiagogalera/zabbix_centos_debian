@@ -1,0 +1,18 @@
+---
+  - name: Iniciar agente zabbix
+    service: name=zabbix-agent state=started enabled=yes
+
+  - name: Iniciar mariadb CentOS
+    service: name=mariadb state=started enabled=yes
+    when: ansible_os_family == "CentOS"
+    notify:
+     - Criar base de dados
+
+  - name: Iniciar mysql Debian
+    service: name=mysql state=started enabled=yes
+    when: ansible_os_family == "Debian"
+    notify:
+     - Criar base de dados
+
+  - name: Criar base de dados
+    mysql_db: name=base_teste state=present
