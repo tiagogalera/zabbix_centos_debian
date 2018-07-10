@@ -1,6 +1,3 @@
-Git para instalar e configurar Zabbix-agent em Debian e Centos.
+Olá!
 
-Ansible-playbook -l maquinas tasks/main.yml
-
-
-
+teste git..
